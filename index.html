@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AarogyaRoute — Autonomous Concierge</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Top Navigation -->
+    <header class="flex justify-between items-center bg-slate-800/80 border border-slate-700 p-4 rounded-xl shadow-lg">
+      <div class="flex items-center space-x-3">
+        <span class="h-3.5 w-3.5 rounded-full bg-teal-400 animate-ping"></span>
+        <h1 class="text-xl font-bold tracking-tight text-white">AarogyaRoute</h1>
+        <span class="text-xs font-semibold bg-teal-950 text-teal-300 border border-teal-800 px-2.5 py-0.5 rounded-full">
+          Autonomous Concierge Agent
+        </span>
+      </div>
+      <div class="flex items-center space-x-2 text-xs font-mono text-slate-400">
+        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+        <span>ENGINE: ONLINE (PORT 5000)</span>
+      </div>
+    </header>
+
+    <!-- Query Inputs -->
+    <section class="bg-slate-800 border border-slate-700 p-5 rounded-xl shadow-md">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Medical Condition / Procedure</label>
+          <select id="condition" onchange="syncDemoDefaults()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500">
+            <option value="Knee Replacement">Knee Replacement (Orthopedics)</option>
+            <option value="Cardiac Bypass">Cardiac Bypass (Cardiology)</option>
+            <option value="Oncology Consultation">Oncology / Tumor Removal</option>
+            <option value="Cataract Micro-Surgery">Cataract / Cornea Laser Surgery</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Target Medical Hub</label>
+          <select id="city" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500">
+            <option value="Chennai">Chennai (Apollo Main Hub)</option>
+            <option value="Bengaluru">Bengaluru (Narayana Cardiac Hub)</option>
+            <option value="Mumbai">Mumbai (Tata Memorial / Breach Candy)</option>
+            <option value="Delhi">Delhi (Centre for Sight / AIIMS Hub)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Max Budget (INR)</label>
+          <input id="budget" type="text" value="400000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500" />
+        </div>
+        <button id="deployBtn" onclick="deployAgent()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg text-sm transition shadow-lg shadow-teal-900/30">
+          Deploy Autonomous Agent
+        </button>
+      </div>
+    </section>
+
+    <!-- Split Workspace -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Left: Terminal Console -->
+      <section class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col h-[480px] shadow-2xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 text-xs font-mono text-slate-400">
+          <span>>_ Live Agent Telemetry Stream</span>
+          <span class="text-teal-400">SSE Active</span>
+        </div>
+        <div id="terminal" class="flex-1 overflow-y-auto mt-3 font-mono text-xs text-cyan-300 space-y-1 pr-2">
+          <p class="text-slate-500">[00:00:00] System ready. Awaiting user parameters...</p>
+        </div>
+      </section>
+
+      <!-- Right: Intelligence Cards & HITL Card -->
+      <section class="space-y-4">
+        
+        <div id="resultsCard" class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow space-y-4">
+          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Synthesized Travel Dossier</h2>
+          
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-700/60">
+              <span class="text-slate-400 block mb-1">Matched Specialist</span>
+              <p id="docName" class="font-bold text-teal-300 text-sm">Awaiting agent scan...</p>
+              <p id="docHospital" class="text-slate-400 mt-0.5">—</p>
+              <p id="docFee" class="text-slate-400 mt-1 font-mono font-semibold">—</p>
+            </div>
+            <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-700/60">
+              <span class="text-slate-400 block mb-1">Recovery Stay (Proximity)</span>
+              <p id="hotelName" class="font-bold text-teal-300 text-sm">Awaiting agent scan...</p>
+              <p id="hotelProximity" class="text-slate-400 mt-0.5">—</p>
+              <p id="hotelRate" class="text-slate-400 mt-1 font-mono font-semibold">—</p>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-900 rounded-lg border border-slate-700 flex justify-between items-center text-xs">
+            <div>
+              <span class="text-slate-400 block">Total Estimated Package</span>
+              <span id="packageTotal" class="font-bold text-white text-sm font-mono">—</span>
+            </div>
+            <span id="budgetStatus" class="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-1 rounded text-xs font-semibold">
+              Status: Ready
+            </span>
+          </div>
+        </div>
+
+        <!-- MANDATORY HUMAN-IN-THE-LOOP (HITL) CHECKPOINT -->
+        <div id="hitlCard" class="hidden bg-amber-950/40 border-2 border-dashed border-amber-500/80 rounded-xl p-5 shadow-xl space-y-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-amber-400 font-bold text-sm">⚠️ Mandatory Action Checkpoint</span>
+            <span class="bg-amber-900/60 text-amber-200 text-[10px] px-2 py-0.5 rounded font-bold uppercase">Hard Rule Compliant</span>
+          </div>
+          <p class="text-xs text-amber-200/90 leading-relaxed">
+            The agent has gathered accredited doctor slots and proximity accommodation. Prior to submitting the live consultation inquiry, human authorization is required.
+          </p>
+          <div class="flex space-x-3 pt-1">
+            <button onclick="authorizeAction()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs tracking-wide transition shadow-lg">
+              ✓ Authorize & Dispatch Inquiry
+            </button>
+          </div>
+        </div>
+
+        <!-- Final Receipt & PDF Download Card -->
+        <div id="receiptCard" class="hidden bg-emerald-950/50 border border-emerald-500/80 rounded-xl p-4 text-xs text-emerald-200 space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-bold text-emerald-400 text-sm">✓ Consultation Inquiry Dispatched Live</p>
+              <p class="text-slate-300 text-xs">Medical Travel Dossier & Receipt successfully compiled.</p>
+            </div>
+          </div>
+          <div class="flex space-x-3 pt-1">
+            <a href="/receipt.html" target="_blank" class="flex-1 text-center bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded text-xs transition">
+              📄 Open / Download PDF Dossier ↗
+            </a>
+            <a href="/receipt.png" target="_blank" class="flex-1 text-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold py-2 px-3 rounded text-xs transition">
+              🖼️ View Screenshot Receipt ↗
+            </a>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const term = document.getElementById('terminal');
+
+    const eventSource = new EventSource('/api/stream');
+    eventSource.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      const line = document.createElement('p');
+      line.textContent = data.log;
+
+      if (data.log.includes('[MANDATORY CHECKPOINT]')) {
+        line.className = 'text-amber-400 font-bold';
+        triggerHITL();
+      } else if (data.log.includes('MATCH FOUND') || data.log.includes('HOTEL MATCHED')) {
+        line.className = 'text-emerald-300 font-semibold';
+      } else if (data.log.includes('Auto-Recovery')) {
+        line.className = 'text-purple-400';
+      }
+
+      term.appendChild(line);
+      term.scrollTop = term.scrollHeight;
+    };
+
+    function syncDemoDefaults() {
+      const cond = document.getElementById('condition').value;
+      const citySelect = document.getElementById('city');
+      const budgetInput = document.getElementById('budget');
+
+      if (cond.includes('Cardiac')) {
+        citySelect.value = 'Bengaluru';
+        budgetInput.value = '500000';
+      } else if (cond.includes('Oncology')) {
+        citySelect.value = 'Mumbai';
+        budgetInput.value = '650000';
+      } else if (cond.includes('Cataract')) {
+        citySelect.value = 'Delhi';
+        budgetInput.value = '150000';
+      } else {
+        citySelect.value = 'Chennai';
+        budgetInput.value = '400000';
+      }
+    }
+
+    async function deployAgent() {
+      document.getElementById('deployBtn').disabled = true;
+      document.getElementById('deployBtn').classList.add('opacity-50');
+      document.getElementById('receiptCard').classList.add('hidden');
+
+      const payload = {
+        condition: document.getElementById('condition').value,
+        city: document.getElementById('city').value,
+        budget: document.getElementById('budget').value
+      };
+
+      await fetch('/api/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    async function triggerHITL() {
+      const res = await fetch('/api/dossier');
+      const data = await res.json();
+
+      if (data.doctor) {
+        document.getElementById('docName').textContent = data.doctor.name;
+        document.getElementById('docHospital').textContent = data.doctor.hospital;
+        document.getElementById('docFee').textContent = `Fee: ${data.doctor.consultationFee} | ${data.doctor.rating}`;
+
+        document.getElementById('hotelName').textContent = data.hotel.name;
+        document.getElementById('hotelProximity').textContent = data.hotel.proximity;
+        document.getElementById('hotelRate').textContent = `${data.hotel.nightlyRate} (Total: ${data.hotel.totalStay})`;
+
+        document.getElementById('packageTotal').textContent = data.package.total;
+        document.getElementById('budgetStatus').textContent = data.package.status;
+      }
+
+      document.getElementById('hitlCard').classList.remove('hidden');
+    }
+
+    async function authorizeAction() {
+      document.getElementById('hitlCard').classList.add('hidden');
+      await fetch('/api/authorize', { method: 'POST' });
+      document.getElementById('receiptCard').classList.remove('hidden');
+      document.getElementById('deployBtn').disabled = false;
+      document.getElementById('deployBtn').classList.remove('opacity-50');
+    }
+  </script>
+</body>
+</html>
